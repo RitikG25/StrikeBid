@@ -1,0 +1,29 @@
+services:
+  database:
+    image: postgres:18.3-alpine3.23
+    container_name: live_auction_db_container
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin", "-d", "live_auction_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=live_auction_db
+    ports:
+      - 5433:5432
+    volumes:
+      - live_auction_db_vol:/var/lib/postgresql
+  redis:
+    image: redis:8.6-rc1-alpine
+    container_name: redis_container
+    depends_on:
+      - database
+    restart: always
+    ports:
+      - 6379:6379
+
+volumes:
+  live_auction_db_vol:

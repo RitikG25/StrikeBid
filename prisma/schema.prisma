@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuctionState {
+  SCHEDULED
+  ACTIVE
+  CLOSING
+  CLOSED
+  SETTLED
+  CANCELLED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bids      AuctionBids[]
+  items     Item[]
+  auctions   Auction[]
+  watchlist AuctionWatchlist[]
+  auctionResults AuctionResult[]
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  userId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user User @relation(fields: [userId],references: [id])
+  auctions Auction[]
+}
+
+model Auction {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startingBid Float
+  endTime     DateTime
+  startTime   DateTime
+  reservePrice Float
+  state       AuctionState @default(SCHEDULED)
+  auctionItemId Int
+  ownerId     Int
+  durationSeconds Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  bids        AuctionBids[]
+  auctionItem Item @relation(fields: [auctionItemId], references: [id])
+  owner User @relation(fields: [ownerId], references: [id])
+  watchlist AuctionWatchlist[]
+  auctionResult AuctionResult?
+}
+
+model AuctionWatchlist {
+  auctionId Int
+  userId    Int
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@id([auctionId, userId])
+}
+
+model AuctionBids {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  userId    Int
+  auctionId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  auction Auction @relation(fields: [auctionId], references: [id])
+  auctionResult AuctionResult?
+}
+
+
+model AuctionResult {
+  id          Int      @id @default(autoincrement())
+  auctionId   Int @unique
+  winnerId    Int
+  highestBidId Int @unique
+  finalAmount Float
+  reserveMet  Boolean
+  settledAt   DateTime
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+  winner User @relation(fields: [winnerId], references: [id])
+  highestBid AuctionBids @relation(fields: [highestBidId], references: [id])
+}
