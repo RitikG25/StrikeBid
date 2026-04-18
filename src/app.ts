@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import AuthRouter from "./routes/authRoutes.js";
 import { errorMiddleware } from "./middleware/ErrorMiddleware.js";
 import UserRouter from "./routes/userRoutes.js";
+import ItemsRouter from "./routes/itemsRoutes.js";
+import AuctionRouter from "./routes/auctionsRoutes.js";
 dotenv.config();
 
 const app = Express();
@@ -17,6 +19,8 @@ app.get("/health", (req, res) => {
 
 app.use("/api/v1/auth", AuthRouter);
 app.use("/api/v1/users", UserRouter);
+app.use("/api/v1/items", ItemsRouter);
+app.use("/api/v1/auctions", AuctionRouter);
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
